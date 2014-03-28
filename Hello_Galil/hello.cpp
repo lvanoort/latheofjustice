@@ -4,9 +4,10 @@
 #include <sstream>   //ostringstream istringstream
 #include <unistd.h>
 #include <math.h>
+
+#include "controller.h"
+
 using namespace std; //cout ostringstream vector string
-
-
 
 Galil * galil_connection = NULL;
 
@@ -24,13 +25,13 @@ bool homeSwitchOff() {
 }
 
 bool returnToHome() {
-if(!galil_connection)
+  if(!galil_connection)
     return false;
-    galil_connection->command("ST; LD 3,3,3; CN,1; SPC=22000; HM C; BG C;");
-	sleep(5);
 
-  //TODO: Reset encoders
-  galil_connection->command("SH; LD0,0,0; JG0,0,0; BG C;");
+  galil_connection->command("ST; LD 3,3,3; CN,1; SPC=22000; HM C; BG C;");
+  sleep(5);
+
+  galil_connection->command("DEC=0; LD0,0,0; JG0,0,0; BG C;");
   return true;
 }
 
@@ -54,37 +55,17 @@ void write_axis1(double val)
   galil_connection->command("JG,,"+out+";");
 }
 
-
 int main()
 {
   try {
     setup();
-
-    //galil_connection->command("ST"); //ST = Stop
-
-    /*while(homeSwitchOff()) {
-      write_axis1(1000);
-      usleep(10000);
-    }*/
-
- //   galil_connection->command("ST; CN,1; SPC=1000; HM C; BG C;");
     returnToHome();
 
-    //sleep(10);
 
-    /*galil_connection->command("ST; JG0,0,0; BG C;");*/
-
-    for(int i = 0; i < 500; i++) {
-      cout << "Got: " << read_axis1() <<std::endl;
-	cout << homeSwitchOff() <<std::endl;      
-	write_axis1(-3000);
-      usleep(10000);
-    }
-
-    for(int i = 0; i < 250; i++) {
-      cout << "Got: " << read_axis1() <<std::endl;
-cout << homeSwitchOff() <<std::endl;      
-write_axis1(3000);
+    for(int i = 0; i < 600; i++) {
+      double reading = read_axis1();
+      cout << reading <<std::endl;
+      write_axis1(controller(reading, -1500));
       usleep(10000);
     }
 
