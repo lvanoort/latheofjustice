@@ -13,6 +13,12 @@ typedef struct _controller_output {
   double c;
 } controller_output;
 
-controller_output controller(_axis_readings reading, double command);
+typedef struct _controller_command {
+  double a;
+  double b;
+  double c;
+} controller_command;
+
+controller_output controller(_axis_readings reading, controller_command command);
 
 #endif
