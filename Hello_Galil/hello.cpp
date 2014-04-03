@@ -2,6 +2,7 @@
 #include "Galil.h"   //vector string Galil
 #include <iostream>  //cout
 #include <sstream>   //ostringstream istringstream
+#include <fstream>
 #include <unistd.h>
 #include <math.h>
 
@@ -123,50 +124,50 @@ void write_axes(double a, double b, double c)
   galil_connection->command(out);
 }
 
+int stringToInt (std::string s) {
+   int d;
+   std::stringstream ss(s);
+   ss >> d;
+   return d;
+}
+
 int main()
 {
   try {
     setup();
     returnToHome();
+
     cout<<"Homing complete"<<std::endl;
+    
+    string s;
+    std::vector<controller_command> commands;
+    commands.clear();
+    ifstream commandFile ("traj.csv");
+	  std::string line;
+    while(std::getline(commandFile,line)) {
+      std::string a, b ,c;
+      int ai, bi, ci;
+      std::stringstream  lineStream(line);
+      std::string cell;
+      std::getline(lineStream,a,',');
+      std::getline(lineStream,b,',');
+      std::getline(lineStream,c,',');
+      controller_command command;
+      command.a = stringToInt(a); 
+      command.b = stringToInt(b); 
+      command.c = stringToInt(c); 
+      commands.push_back(command);
+    }
 
-    controller_command command;
-    command.a = 0;
-    command.b = 0;
-    command.c = -1500;
-    for(int i = 0; i < 300; i++) {
-      //double reading = read_axis1();
+    cout<<"Running"<<endl;
+
+    for(int i = 0; i < commands.size(); i++) {
+      controller_command command = commands[i];
       axis_readings readings = get_readings();
-      //cout << readings.c <<std::endl;
-      cout << readings.a << " " << readings.c <<std::endl;
       controller_output output = controller(readings, command);
       write_axes(output.a,0,output.c);
       usleep(10000);
-    }
-
-    command.a = -9001;
-    command.c = -2000;
-    for(int i = 0; i < 300; i++) {
-      //double reading = read_axis1();
-      axis_readings readings = get_readings();
-      //cout << readings.c <<std::endl;
-      cout << readings.a << " " << readings.c <<std::endl;
-      controller_output output = controller(readings, command);
-      write_axes(output.a,0,output.c);
-      usleep(10000);
-    }
-
-    command.a = -5000;
-    command.c = -1000;
-    for(int i = 0; i < 300; i++) {
-      //double reading = read_axis1();
-      axis_readings readings = get_readings();
-      //cout << readings.c <<std::endl;
-      cout << readings.a << " " << readings.c <<std::endl;
-      controller_output output = controller(readings, command);
-      write_axes(output.a,0,output.c);
-      usleep(10000);
-    }
+    }       
 
     galil_connection->command("ST"); //ST = Stop
 
@@ -176,3 +177,4 @@ int main()
   }
 
 }
+

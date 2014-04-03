@@ -1,7 +1,7 @@
 #include "controller.h"
 
 const double kPc = 50.f;
-const double kPa = 30.f;
+const double kPa = 45.f;
 
 controller_output controller(_axis_readings reading,controller_command command) {
   controller_output output;
